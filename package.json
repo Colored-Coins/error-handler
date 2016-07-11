@@ -1,0 +1,22 @@
+{
+  "name": "cc-error-handler",
+  "version": "0.0.0",
+  "description": "Express.js error handling middleware",
+  "main": "index.js",
+  "author": "oleiba <oded@colu.com>",
+  "license": "MIT",
+  "dependencies": {
+  },
+  "scripts": {
+    "test": "mocha",
+    "coverage": "istanbul cover _mocha -- -R spec",
+    "coveralls": "cat ./coverage/lcov.info | coveralls"
+  },
+  "devDependencies": {
+    "body-parser": "^1.15.2",
+    "cc-errors": "git+https://github.com/Colored-Coins/Errors.git#startup",
+    "express": "^4.14.0",
+    "mocha": "^2.5.3",
+    "supertest": "^1.2.0"
+  }
+}
