@@ -5,8 +5,6 @@
   "main": "index.js",
   "author": "oleiba <oded@colu.com>",
   "license": "MIT",
-  "dependencies": {
-  },
   "scripts": {
     "test": "mocha",
     "coverage": "istanbul cover _mocha -- -R spec",
