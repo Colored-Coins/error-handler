@@ -18,5 +18,8 @@
     "supertest": "^1.2.0",
     "chai": "^3.0.0",
     "istanbul": "^0.3.22"
+  },
+  "dependencies": {
+    "capture-stack-trace": "1.0.0"
   }
 }
