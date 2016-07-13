@@ -1,4 +1,6 @@
-[![Build Status](https://travis-ci.org/Colored-Coins/error-handler.svg?branch=master)](https://travis-ci.org/Colored-Coins/error-handler) [![Coverage Status](https://coveralls.io/repos/Colored-Coins/error-handler/badge.svg?branch=master)](https://coveralls.io/r/Colored-Coins/error-handler?branch=master) 
+[![Build Status](https://travis-ci.org/Colored-Coins/error-handler.svg?branch=master)](https://travis-ci.org/Colored-Coins/error-handler)
+[![Coverage Status](https://coveralls.io/repos/github/Colored-Coins/error-handler/badge.svg?branch=master)](https://coveralls.io/github/Colored-Coins/error-handler?branch=master)
+[![npm version](https://badge.fury.io/js/cc-error-handler.svg)](https://badge.fury.io/js/cc-error-handler)
 # error-handler
 Express.js error handling middleware.
 ## Installation

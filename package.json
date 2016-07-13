@@ -5,6 +5,10 @@
   "main": "index.js",
   "author": "oleiba <oded@colu.com>",
   "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Colored-Coins/error-handler.git"
+  },
   "scripts": {
     "test": "mocha",
     "coverage": "istanbul cover _mocha -- -R spec",
