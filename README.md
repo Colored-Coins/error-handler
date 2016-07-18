@@ -19,9 +19,14 @@ var errorhandler = require('cc-error-handler')
 ### errorhandler(options)
 Create new error handling middleware.
 #### options
-##### env
-Possible values: `'development'` (default) or other environment string.<br>
-`'development'` enables including the stack trace as part of the response.
+##### includeStack
+Should the error object include stack trace.<br>
+Default is `false`, unless `NODE_ENV=development`
+##### log
+One of two types:<br>
+boolean - a boolean for determining whether the error handler should log the error messages. `true` will use `console.error` by default for logging.<br>
+function - a function to process an error, invoked with `err`.<br>
+Default is `true`.
 
 ## Example
 As with any express error handling middleware, it should be put after the router middleware:
