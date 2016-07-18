@@ -2,7 +2,7 @@
   "name": "cc-error-handler",
   "version": "0.0.1",
   "description": "Express.js error handling middleware",
-  "main": "index.js",
+  "main": "errorHandler.js",
   "author": "oleiba <oded@colu.com>",
   "license": "MIT",
   "repository": {
@@ -22,5 +22,8 @@
     "supertest": "^1.2.0",
     "chai": "^3.0.0",
     "istanbul": "^0.3.22"
+  },
+  "dependencies": {
+    "dynamic-middleware": "https://github.com/Colored-Coins/node-dynamic-middleware.git#error_handler"
   }
 }

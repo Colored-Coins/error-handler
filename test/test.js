@@ -1,6 +1,6 @@
 /* eslint-env mocha */
-var ErrorHandler = require('../index.js')
-var DynamicErrorHandler = require('../lib/dynamicErrorHandler.js')
+var errorHandler = require('../errorHandler.js')
+var DynamicMiddleware = require('dynamic-middleware')
 var errors = require('cc-errors')
 var assert = require('assert')
 var request = require('supertest')
@@ -8,10 +8,18 @@ var bodyParser = require('body-parser')
 var express = require('express')
 var app = express()
 
-var errorHandlerDevelopment = new ErrorHandler()	// should be default
-var errorHandlerProduction = new ErrorHandler('production')
-var dynamicErrorHandler = new DynamicErrorHandler(errorHandlerProduction)
+var placeHolderMiddleware = function (req, res, next) { next() }
+var requestIdMiddleware = function (req, res, next) {
+  req.headers['request-id'] = 'request-id-1234'
+  req.headers['correlation-id'] = 'correlation-id-1234'
+  next()
+}
+var dynamicRequestIdMiddleware = new DynamicMiddleware(placeHolderMiddleware)
+var errorHandlerProduction = errorHandler() // default, unless explicitly process.env.NODE_ENV = 'development'
+var errorHandlerDevelopment = errorHandler({includeStack: true})
+var dynamicErrorHandler = new DynamicMiddleware(errorHandlerProduction)
 
+app.use(dynamicRequestIdMiddleware.handler())
 app.use(bodyParser.json())
 app.get('/string_error', function (req, res, next) {
   next('Some Error')
@@ -27,7 +35,7 @@ app.get('/cc_error', function (req, res, next) {
     explanation: 'This specific address is invalid'
   }))
 })
-app.use(dynamicErrorHandler.handler())
+app.use(dynamicErrorHandler.errorHandler())
 
 describe('Test error of correct format - production', function () {
   it('string error', function (done) {
@@ -155,4 +163,24 @@ describe('Test error of correct format - development', function () {
 				done()
 			})
 	})
+
+  it('Colored-Coins error, with request-id and correlation-id', function (done) {
+    dynamicRequestIdMiddleware.replace(requestIdMiddleware)
+    request(app)
+      .get('/cc_error?explain=true')
+      .expect(422)
+      .end(function (err, res) {
+        if (err) return done(err)
+        assert.equal(res.body.status, 422)
+        assert.equal(res.body.name, 'InvalidAddressError')
+        assert.equal(res.body.code, 10001)
+        assert.equal(res.body.message, 'Invalid address')
+        assert.equal(res.body.message, 'Invalid address')
+        assert.equal(res.body.explanation, 'This specific address is invalid')
+        assert.equal(res.body.requestId, 'request-id-1234')
+        assert.equal(res.body.correlationId, 'correlation-id-1234')
+        assert.notEqual(res.body.stack, undefined)
+        done()
+      })    
+  })
 })
