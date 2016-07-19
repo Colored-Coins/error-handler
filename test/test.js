@@ -12,6 +12,7 @@ var placeHolderMiddleware = function (req, res, next) { next() }
 var requestIdMiddleware = function (req, res, next) {
   req.headers['request-id'] = 'request-id-1234'
   req.headers['correlation-id'] = 'correlation-id-1234'
+  req.headers['remote-id'] = 'remote-id-1234'
   next()
 }
 var dynamicRequestIdMiddleware = new DynamicMiddleware(placeHolderMiddleware)
@@ -147,7 +148,7 @@ describe('Test error of correct format - development', function () {
 			})
 	})
 
-	it('Colored-Coins error, with explanation', function (done) {
+	it('Colored-Coins error with explanation', function (done) {
     request(app)
 			.get('/cc_error?explain=true')
 			.expect(422)
@@ -164,7 +165,7 @@ describe('Test error of correct format - development', function () {
 			})
 	})
 
-  it('Colored-Coins error, with request-id and correlation-id', function (done) {
+  it('Colored-Coins error with request-id, correlation-id and remote-id', function (done) {
     dynamicRequestIdMiddleware.replace(requestIdMiddleware)
     request(app)
       .get('/cc_error?explain=true')
@@ -179,8 +180,9 @@ describe('Test error of correct format - development', function () {
         assert.equal(res.body.explanation, 'This specific address is invalid')
         assert.equal(res.body.requestId, 'request-id-1234')
         assert.equal(res.body.correlationId, 'correlation-id-1234')
+        assert.equal(res.body.remoteId, 'remote-id-1234')
         assert.notEqual(res.body.stack, undefined)
         done()
-      })    
+      })
   })
 })

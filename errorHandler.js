@@ -41,6 +41,7 @@ module.exports = function (options) {
 
     req.headers && req.headers['request-id'] && (error.requestId = req.headers['request-id'])
     req.headers && req.headers['correlation-id'] && (error.correlationId = req.headers['correlation-id'])
+    req.headers && req.headers['remote-id'] && (error.remoteId = req.headers['remote-id'])
     if (includeStack && !error.stack) {
       error.stack = ''
       Error.captureStackTrace(error, errorHandler)
