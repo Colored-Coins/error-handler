@@ -6,6 +6,7 @@ var assert = require('assert')
 var request = require('supertest')
 var bodyParser = require('body-parser')
 var express = require('express')
+var async = require('async')
 var app = express()
 
 var placeHolderMiddleware = function (req, res, next) { next() }
@@ -236,4 +237,51 @@ describe('Test error of correct format - development', function () {
         done()
       })
   })
+
+  it('requestId is carried from the error-initiator', function (done) {
+  	this.timeout(5000)
+		var requestIdMiddleware = require('cc-request-id')
+		var portfinder = require('portfinder')
+		var httpClient = require('request')
+		var port
+		var app1 = express()
+		app1.use(requestIdMiddleware({namespace: 'app1', secret: '1234'}))
+		app1.get('/', function (req, res, next) {
+			next(new Error())
+		})
+		app1.use(errorHandler())
+
+		var app2 = express()
+		app2.use(requestIdMiddleware({namespace: 'app2', secret: '1234'}))
+		app2.get('/', function (req, res, next) {
+			httpClient('http://localhost:' + port + '/', function (err, response, body) {
+				if (err) return next(err)
+				if (response.statusCode) return next(JSON.parse(response.body))
+				res.status(200).end()
+			})
+		})
+		app2.use(errorHandler())
+
+		async.waterfall([
+			function (cb) {
+				portfinder.getPort(cb)
+			},
+			function (firstPort, cb) {
+				port = firstPort
+				app1.listen(port, cb)
+			}
+		],
+		function (err, cb) {
+			if (err) return done(err)
+			request(app2)
+				.get('/')
+				.expect(500)
+				.end(function (err, res) {
+					if (err) return done(err)
+					assert.equal(res.body.requestId.substring(0, 'app1'.length), 'app1')
+					assert.equal(res.body.correlationId.substring(0, '/-app2'.length), '/-app2')
+					done()
+				})
+		})
+	})
 })

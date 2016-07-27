@@ -36,6 +36,7 @@ module.exports = function (options) {
         message: INTERNAL_SERVER_ERROR,
         status: 500
       }
+      error.requestId = err.requestId // carry the requestId which initiated the error
       if (env === 'development') {
         if (_.isError(err)) {
           error.stack = err.stack
@@ -51,7 +52,7 @@ module.exports = function (options) {
       }
     }
 
-    req.headers && req.headers['request-id'] && (error.requestId = req.headers['request-id'])
+    !error.requestId && req.headers && req.headers['request-id'] && (error.requestId = req.headers['request-id'])
     req.headers && req.headers['correlation-id'] && (error.correlationId = req.headers['correlation-id'])
     req.headers && req.headers['remote-id'] && (error.remoteId = req.headers['remote-id'])
     if (env === 'development' && !error.stack) {
