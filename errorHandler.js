@@ -1,6 +1,11 @@
+var errors = require('cc-errors')
+var _ = require('lodash')
+
+var INTERNAL_SERVER_ERROR = 'Internal server error'
+
 module.exports = function (options) {
   options = options || {}
-  var includeStack = options.includeStack || process.env.NODE_ENV === 'development'
+  var env = (options.env || process.env.NODE_ENV)
   var log = options.log || true
   if (typeof log !== 'function' && typeof log !== 'boolean') {
     throw new TypeError('option log must be function or boolean')
@@ -11,30 +16,37 @@ module.exports = function (options) {
 
   return function errorHandler (err, req, res, next) {
     var error
-    if (err instanceof Error) {
-      error = {}
-      for (var prop in err) {
-        error[prop] = err[prop]
-      }
-      if (includeStack) {
+    if (err instanceof errors.ColoredCoinsError) {
+      error = toJSON(err)
+      if (env === 'development') {
         error.stack = err.stack
       }
-    } else if (Array.isArray(err)) {
+    } else if (_.isArray(err)) {
       error = {
         message: err[0],
         status: err[1]
       }
-    } else if (typeof err === 'string') {
-      console.log('err = ', err)
+    } else if (_.isString(err)) {
       error = {
         message: err,
         status: 500
       }
-    } else if (typeof err === 'object') {
-      error = err
+    } else if (_.isError(err) || _.isObject(err)) {
+      error = {
+        message: INTERNAL_SERVER_ERROR,
+        status: 500
+      }
+      if (env === 'development') {
+        if (_.isError(err)) {
+          error.stack = err.stack
+          error.original = err.toString()
+        } else {
+          error.original = err
+        }
+      }
     } else {
       error = {
-        message: 'Internal Server Error',
+        message: INTERNAL_SERVER_ERROR,
         status: 500
       }
     }
@@ -42,7 +54,7 @@ module.exports = function (options) {
     req.headers && req.headers['request-id'] && (error.requestId = req.headers['request-id'])
     req.headers && req.headers['correlation-id'] && (error.correlationId = req.headers['correlation-id'])
     req.headers && req.headers['remote-id'] && (error.remoteId = req.headers['remote-id'])
-    if (includeStack && !error.stack) {
+    if (env === 'development' && !error.stack) {
       error.stack = ''
       Error.captureStackTrace(error, errorHandler)
     }
@@ -51,4 +63,16 @@ module.exports = function (options) {
     res.status(error.status || 500)
     return res.send(error)
   }
+}
+
+function toJSON (err) {
+  if (err.toJSON) {
+    return err.toJSON()
+  }
+
+  var json = {}
+  for (var prop in err) {
+    json[prop] = err[prop]
+  }
+  return json
 }

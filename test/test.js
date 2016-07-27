@@ -17,7 +17,7 @@ var requestIdMiddleware = function (req, res, next) {
 }
 var dynamicRequestIdMiddleware = new DynamicMiddleware(placeHolderMiddleware)
 var errorHandlerProduction = errorHandler() // default, unless explicitly process.env.NODE_ENV = 'development'
-var errorHandlerDevelopment = errorHandler({includeStack: true})
+var errorHandlerDevelopment = errorHandler({env: 'development'})
 var dynamicErrorHandler = new DynamicMiddleware(errorHandlerProduction)
 
 app.use(dynamicRequestIdMiddleware.handler())
@@ -27,6 +27,9 @@ app.get('/string_error', function (req, res, next) {
 })
 app.get('/array_error', function (req, res, next) {
   next(['Some Error', 500])
+})
+app.get('/error', function (req, res, next) {
+	next(new Error('Some Error'))
 })
 app.get('/cc_error', function (req, res, next) {
   if (!req.query || req.query.explain !== 'true') {
@@ -62,6 +65,20 @@ describe('Test error of correct format - production', function () {
 				assert.deepEqual(res.body, {
 					status: 500,
 					message: 'Some Error'
+				})
+				done()
+			})
+	})
+
+	it('raw error', function (done) {
+    request(app)
+			.get('/error')
+			.expect(500)
+			.end(function (err, res) {
+				if (err) return done(err)
+				assert.deepEqual(res.body, {
+					status: 500,
+					message: 'Internal server error'
 				})
 				done()
 			})
@@ -133,6 +150,19 @@ describe('Test error of correct format - development', function () {
 			})
 	})
 
+	it('raw error', function (done) {
+    request(app)
+			.get('/error')
+			.expect(500)
+			.end(function (err, res) {
+				if (err) return done(err)
+				assert.equal(res.body.status, 500)
+				assert.equal(res.body.message, 'Internal server error')
+				assert.notEqual(res.body.original, undefined)
+				done()
+			})
+	})
+
 	it('Colored-Coins error', function (done) {
     request(app)
 			.get('/cc_error')
@@ -164,6 +194,27 @@ describe('Test error of correct format - development', function () {
 				done()
 			})
 	})
+
+  it('Colored-Coins error with request-id, correlation-id and remote-id', function (done) {
+    dynamicRequestIdMiddleware.replace(requestIdMiddleware)
+    request(app)
+      .get('/cc_error?explain=true')
+      .expect(422)
+      .end(function (err, res) {
+        if (err) return done(err)
+        assert.equal(res.body.status, 422)
+        assert.equal(res.body.name, 'InvalidAddressError')
+        assert.equal(res.body.code, 10001)
+        assert.equal(res.body.message, 'Invalid address')
+        assert.equal(res.body.message, 'Invalid address')
+        assert.equal(res.body.explanation, 'This specific address is invalid')
+        assert.equal(res.body.requestId, 'request-id-1234')
+        assert.equal(res.body.correlationId, 'correlation-id-1234')
+        assert.equal(res.body.remoteId, 'remote-id-1234')
+        assert.notEqual(res.body.stack, undefined)
+        done()
+      })
+  })
 
   it('Colored-Coins error with request-id, correlation-id and remote-id', function (done) {
     dynamicRequestIdMiddleware.replace(requestIdMiddleware)

@@ -19,9 +19,9 @@ var errorhandler = require('cc-error-handler')
 ### errorhandler(options)
 Create new error handling middleware.
 #### options
-##### includeStack
-Should the error object include stack trace.<br>
-Default is `false`, unless `NODE_ENV=development`
+##### env
+'development' will include stack trace, and will accumulate original errors<br>
+initiated from third party or separate servers. Default is undefined.
 ##### log
 One of two types:<br>
 boolean - a boolean for determining whether the error handler should log the error messages. `true` will use `console.error` by default for logging.<br>
