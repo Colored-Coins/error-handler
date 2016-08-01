@@ -31,20 +31,17 @@ module.exports = function (options) {
         message: err,
         status: 500
       }
-    } else if (_.isError(err) || _.isObject(err)) {
+    } else if (_.isError(err)) {
       error = {
         message: INTERNAL_SERVER_ERROR,
         status: 500
       }
-      error.requestId = err.requestId // carry the requestId which initiated the error
       if (env === 'development') {
-        if (_.isError(err)) {
-          error.stack = err.stack
-          error.original = err.toString()
-        } else {
-          error.original = err
-        }
+        error.original = err
+        error.stack = err.stack
       }
+    } else if (_.isObject(err)) {
+      error = err
     } else {
       error = {
         message: INTERNAL_SERVER_ERROR,
