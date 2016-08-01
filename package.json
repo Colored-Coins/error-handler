@@ -28,7 +28,7 @@
     "supertest": "^1.2.0"
   },
   "dependencies": {
-    "cc-errors": "^0.0.1",
+    "cc-errors": "^0.0.4",
     "lodash": "^4.14.0"
   }
 }
