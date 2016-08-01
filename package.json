@@ -1,6 +1,6 @@
 {
   "name": "cc-error-handler",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Express.js error handling middleware",
   "main": "errorHandler.js",
   "author": "oleiba <oded@colu.com>",
